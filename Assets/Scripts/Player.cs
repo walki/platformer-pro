@@ -13,14 +13,15 @@ public class Player : MonoBehaviour
     private float speed = 5.0f;
 
     [SerializeField]
-    private float gravity = 1.0f;
+    private float gravity = -40.0f;
 
     [SerializeField]
-    private float jumpHeight = 25.0f;
+    private float jumpHeight = 4.0f;
 
+    [SerializeField]
+    private float currVertSpeed = 0f;
     
-    private float yVelocity = 0f;
-    private bool canDoubleJump = false;
+    private bool canDoubleJump = true;
     private int playerCoins = 0;
 
 
@@ -44,33 +45,32 @@ public class Player : MonoBehaviour
         Vector3 xDir = Vector3.right * xInput;
         Vector3 xVel = xDir * speed;
 
-        
-        if (controller.isGrounded )
+        float vert = 0f;
+
+        if (Input.GetKeyDown(KeyCode.Space) && (controller.isGrounded || canDoubleJump))
         {
-            if (Input.GetKeyDown(KeyCode.Space))
-            { 
-                yVelocity = jumpHeight;
-                canDoubleJump = true;
-            }
-            else
+            vert = Mathf.Sqrt(2.0f * Mathf.Abs(gravity) * jumpHeight);
+            if (!controller.isGrounded)
             {
-                yVelocity = -gravity;
+                canDoubleJump = false;
             }
+        }
+        else if (!controller.isGrounded)
+        {
+            vert = currVertSpeed + (gravity * Time.deltaTime);
         }
         else
         {
-            if (Input.GetKeyDown(KeyCode.Space) && canDoubleJump)
-            {
-                yVelocity += jumpHeight;
-                canDoubleJump = false;
-            }
-            yVelocity -= gravity;
-
+            vert = -1.0f;
+            canDoubleJump = true;
         }
+        
 
         Vector3 velocity = xVel;
-        velocity.y = yVelocity;
-        
+        velocity.y = vert;
+
+        currVertSpeed = vert;
+
         controller.Move(velocity * Time.deltaTime);
     }
 
